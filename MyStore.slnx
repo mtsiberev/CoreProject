@@ -4,4 +4,5 @@
     <File Path="docker-compose.yml" />
   </Folder>
   <Project Path="MyStore.Api/MyStore.Api.csproj" />
+  <Project Path="MyStore.Domain/MyStore.Domain.csproj" Id="f42f08a9-7eeb-42cd-b24a-6a3d6e02a730" />
 </Solution>
