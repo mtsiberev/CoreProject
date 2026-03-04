@@ -1,0 +1,18 @@
+## Служебные папки Visual Studio
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.doccache
+
+## Файлы пользователя и секреты (чтобы не утекли пароли)
+appsettings.Development.json
+*.usersecrets
+
+## Docker
+.dockerignore
+
+## Логи и кэш
+*.log
+.clippy/
