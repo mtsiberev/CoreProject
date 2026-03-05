@@ -11,6 +11,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Order>().HasKey(o => o.Id);
+        modelBuilder.Entity<OrderItem>().HasKey(x => x.Id);
 
         modelBuilder.Entity<Order>()
             .HasMany(o => o.Items)
