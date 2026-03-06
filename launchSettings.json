@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:5001/scalar/v1",
+      "publishAllPorts": true,
+      "useSSL": false,
+      "serviceActions": {
+        "mystore.api": "StartDebugging"
+      }
+    }
+  }
+}

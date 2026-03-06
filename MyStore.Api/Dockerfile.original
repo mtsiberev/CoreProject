@@ -13,8 +13,6 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["MyStore.Api/MyStore.Api.csproj", "MyStore.Api/"]
-COPY ["MyStore.Domain/MyStore.Domain.csproj", "MyStore.Domain/"]
-COPY ["MyStore.Infrastructure/MyStore.Infrastructure.csproj", "MyStore.Infrastructure/"]
 RUN dotnet restore "./MyStore.Api/MyStore.Api.csproj"
 COPY . .
 WORKDIR "/src/MyStore.Api"
