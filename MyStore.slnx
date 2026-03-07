@@ -6,6 +6,7 @@
     <Build />
   </Project>
   <Project Path="MyStore.Api/MyStore.Api.csproj" />
+  <Project Path="MyStore.Application/MyStore.Application.csproj" Id="2e1dc693-6dd5-42b6-893f-118e76e1ca8e" />
   <Project Path="MyStore.Domain/MyStore.Domain.csproj" Id="f42f08a9-7eeb-42cd-b24a-6a3d6e02a730" />
   <Project Path="MyStore.Infrastructure/MyStore.Infrastructure.csproj" Id="c19c471a-92fb-4931-affa-39bd8c0db179" />
 </Solution>

@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MyStore.Domain.Entities;
+using MyStore.Application.Common.Interfaces;
 
 namespace MyStore.Infrastructure.Persistence;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options), IApplicationDbContext
 {
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();

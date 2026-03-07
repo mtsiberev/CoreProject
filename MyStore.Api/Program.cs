@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
 using Scalar.AspNetCore;
 
@@ -7,13 +8,18 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString, npgsqlOptions =>
-    {
-        npgsqlOptions.MigrationsAssembly("MyStore.Infrastructure");
-    }));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("MyStore.Infrastructure")));
+
+builder.Services.AddScoped<IApplicationDbContext>(provider =>
+    provider.GetRequiredService<ApplicationDbContext>());
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(MyStore.Application.Orders.Commands.CreateOrderCommand).Assembly);
+});
 
 var app = builder.Build();
 
