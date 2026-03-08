@@ -1,36 +1,29 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using MyStore.Application.Orders.Commands;
+using MyStore.Application.Orders.Queries.GetOrders;
 using MyStore.Domain.Entities;
-using MyStore.Infrastructure.Persistence;
 
 namespace MyStore.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class OrdersController(ApplicationDbContext context) : ControllerBase
+public class OrdersController(IMediator mediator) : ControllerBase
 {
-    // GET: api/orders
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
-    { 
-        var orders = await context.Orders
-            .Include(o => o.Items)
-            .ToListAsync();
-
-        return Ok(orders);
-    }
-
-    // POST: api/orders
     [HttpPost]
-    public async Task<ActionResult<Order>> CreateOrder(string customerName, string product, decimal price)
+    public async Task<ActionResult<Guid>> Create(CreateOrderCommand command)
     {
-        var order = new Order { CustomerName = customerName };
+        var result = await mediator.Send(command);
 
-        order.AddItem(product, price, 1);
-
-        context.Orders.Add(order);
-        await context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetOrders), new { id = order.Id }, order);
+        return Ok(result);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<List<Order>>> Get()
+    {
+        var result = await mediator.Send(new GetOrdersQuery());
+
+        return Ok(result);
+    }
+
 }
