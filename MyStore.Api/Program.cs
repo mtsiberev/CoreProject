@@ -1,16 +1,19 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
+using MyStore.Infrastructure.Persistence.Repositories;
 using Scalar.AspNetCore;
-using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly("MyStore.Infrastructure")));
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 builder.Services.AddScoped<IApplicationDbContext>(provider =>
     provider.GetRequiredService<ApplicationDbContext>());
