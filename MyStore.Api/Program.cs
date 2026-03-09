@@ -1,4 +1,6 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using MyStore.Application.Common.Behaviors;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
 using Scalar.AspNetCore;
@@ -19,6 +21,13 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(MyStore.Application.Orders.Commands.CreateOrderCommand).Assembly);
+});
+
+builder.Services.AddValidatorsFromAssembly(typeof(IApplicationDbContext).Assembly);
+
+builder.Services.AddMediatR(cfg => {
+    cfg.RegisterServicesFromAssembly(typeof(IApplicationDbContext).Assembly);
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 
 var app = builder.Build();
