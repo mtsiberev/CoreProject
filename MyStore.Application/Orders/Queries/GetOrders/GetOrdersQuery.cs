@@ -1,20 +1,18 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using MediatR;
 using MyStore.Application.Common.Interfaces;
-using MyStore.Domain.Entities;
 
 namespace MyStore.Application.Orders.Queries.GetOrders;
 
-public record GetOrdersQuery : IRequest<List<Order>>;
+public record GetOrdersQuery : IRequest<List<OrderDto>>;
 
-public class GetOrdersQueryHandler(IApplicationDbContext context)
-    : IRequestHandler<GetOrdersQuery, List<Order>>
+public class GetOrdersQueryHandler(IOrderRepository repository)
+    : IRequestHandler<GetOrdersQuery, List<OrderDto>>
 {
-    public async Task<List<Order>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
+    public async Task<List<OrderDto>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
-        return await context.Orders
-            .Include(o => o.Items)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        var orders = await repository.GetAllAsync(cancellationToken);
+
+        return orders.Adapt<List<OrderDto>>();
     }
 }

@@ -1,4 +1,6 @@
 using FluentValidation;
+using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
@@ -30,6 +32,9 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+
+builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
+builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 var app = builder.Build();
 
