@@ -8,8 +8,15 @@ using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
 using MyStore.Infrastructure.Persistence.Repositories;
 using Scalar.AspNetCore;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.Seq("http://seq:5341")
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -24,6 +31,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(IApplicationDbContext).Assembl
 
 builder.Services.AddMediatR(cfg => { 
     cfg.RegisterServicesFromAssembly(typeof(IApplicationDbContext).Assembly);
+    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
 

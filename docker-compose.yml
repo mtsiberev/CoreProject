@@ -43,3 +43,14 @@ services:
     restart: always
     ports:
       - "6379:6379"
+
+  # Логи
+  seq:
+    image: datalust/seq:latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=true
+    ports:
+      - "8090:80"    # UI http://localhost:8090
+      - "5341:5341"  # Порт для приема логов
+  
