@@ -1,6 +1,7 @@
 using FluentValidation;
 using Mapster;
 using MapsterMapper;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
@@ -43,6 +44,18 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
+
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("rabbitmq", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+    });
+});
 
 var app = builder.Build();
 
