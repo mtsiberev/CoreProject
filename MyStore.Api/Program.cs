@@ -5,6 +5,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
+using MyStore.Application.Common.Events;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
 using MyStore.Infrastructure.Persistence.Repositories;
@@ -47,6 +48,8 @@ builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<OrderCreatedConsumer>();
+
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("rabbitmq", "/", h =>
@@ -54,6 +57,8 @@ builder.Services.AddMassTransit(x =>
             h.Username("guest");
             h.Password("guest");
         });
+
+        cfg.ConfigureEndpoints(context);
     });
 });
 
