@@ -9,4 +9,5 @@
   <Project Path="MyStore.Application/MyStore.Application.csproj" Id="2e1dc693-6dd5-42b6-893f-118e76e1ca8e" />
   <Project Path="MyStore.Domain/MyStore.Domain.csproj" Id="f42f08a9-7eeb-42cd-b24a-6a3d6e02a730" />
   <Project Path="MyStore.Infrastructure/MyStore.Infrastructure.csproj" Id="c19c471a-92fb-4931-affa-39bd8c0db179" />
+  <Project Path="MyStore.UnitTests/MyStore.UnitTests.csproj" Id="6977d743-9738-4349-b880-00c9043977b0" />
 </Solution>
