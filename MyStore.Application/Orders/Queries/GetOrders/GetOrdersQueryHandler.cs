@@ -1,11 +1,12 @@
 ﻿using Mapster;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Application.Orders.Queries.GetOrders;
 using System.Text.Json;
 
-public class GetOrdersQueryHandler(IOrderRepository repository, IDistributedCache cache)
+public class GetOrdersQueryHandler(IOrderRepository repository, IDistributedCache cache, ILogger<GetOrdersQueryHandler> logger)
     : IRequestHandler<GetOrdersQuery, List<OrderDto>>
 {
     private const string CacheKey = "orders_list";
@@ -15,7 +16,14 @@ public class GetOrdersQueryHandler(IOrderRepository repository, IDistributedCach
         var cachedOrders = await cache.GetStringAsync(CacheKey, ct);
         if (!string.IsNullOrEmpty(cachedOrders))
         {
-            return JsonSerializer.Deserialize<List<OrderDto>>(cachedOrders)!;
+            try
+            {
+                return JsonSerializer.Deserialize<List<OrderDto>>(cachedOrders) ?? new();
+            }
+            catch (JsonException)
+            {        
+                logger.LogWarning("Failed to deserialize cache for {Key}", CacheKey);
+            }
         }
 
         var orders = await repository.GetAllAsync(ct);

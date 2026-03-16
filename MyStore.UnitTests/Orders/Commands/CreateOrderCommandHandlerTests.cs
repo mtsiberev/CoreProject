@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using MassTransit;
+using Microsoft.Extensions.Caching.Distributed;
 using MyStore.Application.Common.Events;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Application.Orders.Commands;
@@ -13,11 +14,12 @@ public class CreateOrderCommandHandlerTests
     private readonly IOrderRepository _repository = Substitute.For<IOrderRepository>();
     private readonly IApplicationDbContext _context = Substitute.For<IApplicationDbContext>();
     private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
+    private readonly IDistributedCache _cache = Substitute.For<IDistributedCache>();
     private readonly CreateOrderCommandHandler _handler;
 
     public CreateOrderCommandHandlerTests()
     {
-        _handler = new CreateOrderCommandHandler(_repository, _context, _publishEndpoint);
+        _handler = new CreateOrderCommandHandler(_repository, _context, _publishEndpoint, _cache);
     }
 
     [Fact]
