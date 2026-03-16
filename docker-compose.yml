@@ -37,7 +37,7 @@ services:
       - "15672:15672" # Порт для браузера (логин/пасс: guest/guest)
 
   # Кэш Redis
-  cache:
+  redis:
     image: redis:latest
     container_name: my_redis
     restart: always
