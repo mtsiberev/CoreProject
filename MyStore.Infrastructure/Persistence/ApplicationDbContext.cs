@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MyStore.Domain.Entities;
+﻿using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using MyStore.Application.Common.Interfaces;
-
+using MyStore.Domain.Entities;
 namespace MyStore.Infrastructure.Persistence;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options), IApplicationDbContext
@@ -11,6 +11,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.AddTransactionalOutboxEntities();
+
         modelBuilder.Entity<Order>().HasKey(o => o.Id);
         modelBuilder.Entity<OrderItem>().HasKey(x => x.Id);
 

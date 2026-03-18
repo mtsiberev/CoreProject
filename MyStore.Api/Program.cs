@@ -48,6 +48,12 @@ builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddEntityFrameworkOutbox<ApplicationDbContext>(o =>
+    {
+        o.UsePostgres();
+        o.UseBusOutbox();
+    });
+
     x.AddConsumer<OrderCreatedConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
