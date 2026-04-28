@@ -9,6 +9,7 @@ public class OrderRepository(ApplicationDbContext context) : IOrderRepository
     public async Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await context.Orders
+            .AsNoTracking()
             .Include(o => o.Items)
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
@@ -16,8 +17,8 @@ public class OrderRepository(ApplicationDbContext context) : IOrderRepository
     public async Task<List<Order>> GetAllAsync(CancellationToken cancellationToken)
     {
         return await context.Orders
-            .Include(o => o.Items)
             .AsNoTracking()
+            .Include(o => o.Items)
             .ToListAsync(cancellationToken);
     }
 

@@ -1,5 +1,7 @@
 ﻿namespace MyStore.Domain.Entities;
 
+using MyStore.Domain.Enums;
+
 public class Order
 {
     public Guid Id { get; init; } = Guid.NewGuid();
@@ -11,6 +13,8 @@ public class Order
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     public List<OrderItem> Items { get; private set; } = new();
+
+    public required OrderStatus Status { get; set; }
 
     public void AddItem(string productName, decimal price, int quantity)
     {

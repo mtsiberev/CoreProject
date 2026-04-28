@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyStore.Application.Orders.Commands;
 using MyStore.Application.Orders.Queries.GetOrders;
+using MyStore.Application.Orders.Queries.GetOrderStatus;
 using MyStore.Domain.Entities;
 
 namespace MyStore.Api.Controllers;
@@ -24,6 +25,13 @@ public class OrdersController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetOrdersQuery());
 
         return Ok(result);
+    }
+
+    [HttpGet("{id}/status")]
+    public async Task<ActionResult<OrderStatusResponse>> GetStatus(Guid id)
+    {
+        var status = await mediator.Send(new GetOrderStatusQuery(id));
+        return Ok(status);
     }
 
 }

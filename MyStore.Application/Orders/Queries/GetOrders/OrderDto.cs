@@ -5,6 +5,7 @@ public record OrderDto(
     string CustomerName,
     decimal TotalAmount,
     DateTime CreatedAt,
+    string Status,
     List<OrderItemDto> Items);
 
 public record OrderItemDto(string ProductName, decimal Price, int Quantity);
