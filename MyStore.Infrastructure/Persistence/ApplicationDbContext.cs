@@ -11,6 +11,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("orders");
+
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.AddTransactionalOutboxEntities();

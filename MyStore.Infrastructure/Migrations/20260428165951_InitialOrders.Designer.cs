@@ -9,18 +9,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MyStore.Infrastructure.Persistence.Migrations
+namespace MyStore.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260428124748_AddStatusToOrder")]
-    partial class AddStatusToOrder
+    [Migration("20260428165951_InitialOrders")]
+    partial class InitialOrders
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasDefaultSchema("orders")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -69,7 +70,7 @@ namespace MyStore.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState");
+                    b.ToTable("InboxState", "orders");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -160,7 +161,7 @@ namespace MyStore.Infrastructure.Persistence.Migrations
                     b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
                         .IsUnique();
 
-                    b.ToTable("OutboxMessage");
+                    b.ToTable("OutboxMessage", "orders");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -168,6 +169,10 @@ namespace MyStore.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("OutboxId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("BusName")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
@@ -190,7 +195,9 @@ namespace MyStore.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState");
+                    b.HasIndex("BusName", "Created");
+
+                    b.ToTable("OutboxState", "orders");
                 });
 
             modelBuilder.Entity("MyStore.Domain.Entities.Order", b =>
@@ -214,7 +221,7 @@ namespace MyStore.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", "orders");
                 });
 
             modelBuilder.Entity("MyStore.Domain.Entities.OrderItem", b =>
@@ -240,7 +247,7 @@ namespace MyStore.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", "orders");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>

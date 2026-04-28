@@ -4,16 +4,20 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace MyStore.Infrastructure.Persistence.Migrations
+namespace MyStore.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class AddOutbox : Migration
+    public partial class InitialOrders : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "orders");
+
             migrationBuilder.CreateTable(
                 name: "InboxState",
+                schema: "orders",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -36,7 +40,24 @@ namespace MyStore.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Orders",
+                schema: "orders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CustomerName = table.Column<string>(type: "text", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OutboxState",
+                schema: "orders",
                 columns: table => new
                 {
                     OutboxId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -44,7 +65,8 @@ namespace MyStore.Infrastructure.Persistence.Migrations
                     RowVersion = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: true),
                     Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Delivered = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    LastSequenceNumber = table.Column<long>(type: "bigint", nullable: true)
+                    LastSequenceNumber = table.Column<long>(type: "bigint", nullable: true),
+                    BusName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -52,7 +74,31 @@ namespace MyStore.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OrderItems",
+                schema: "orders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProductName = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    OrderId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalSchema: "orders",
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OutboxMessage",
+                schema: "orders",
                 columns: table => new
                 {
                     SequenceNumber = table.Column<long>(type: "bigint", nullable: false)
@@ -84,44 +130,64 @@ namespace MyStore.Infrastructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_OutboxMessage_InboxState_InboxMessageId_InboxConsumerId",
                         columns: x => new { x.InboxMessageId, x.InboxConsumerId },
+                        principalSchema: "orders",
                         principalTable: "InboxState",
                         principalColumns: new[] { "MessageId", "ConsumerId" });
                     table.ForeignKey(
                         name: "FK_OutboxMessage_OutboxState_OutboxId",
                         column: x => x.OutboxId,
+                        principalSchema: "orders",
                         principalTable: "OutboxState",
                         principalColumn: "OutboxId");
                 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_InboxState_Delivered",
+                schema: "orders",
                 table: "InboxState",
                 column: "Delivered");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderId",
+                schema: "orders",
+                table: "OrderItems",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_EnqueueTime",
+                schema: "orders",
                 table: "OutboxMessage",
                 column: "EnqueueTime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_ExpirationTime",
+                schema: "orders",
                 table: "OutboxMessage",
                 column: "ExpirationTime");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_InboxMessageId_InboxConsumerId_SequenceNumber",
+                schema: "orders",
                 table: "OutboxMessage",
                 columns: new[] { "InboxMessageId", "InboxConsumerId", "SequenceNumber" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_OutboxMessage_OutboxId_SequenceNumber",
+                schema: "orders",
                 table: "OutboxMessage",
                 columns: new[] { "OutboxId", "SequenceNumber" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_OutboxState_BusName_Created",
+                schema: "orders",
+                table: "OutboxState",
+                columns: new[] { "BusName", "Created" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OutboxState_Created",
+                schema: "orders",
                 table: "OutboxState",
                 column: "Created");
         }
@@ -130,13 +196,24 @@ namespace MyStore.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "OutboxMessage");
+                name: "OrderItems",
+                schema: "orders");
 
             migrationBuilder.DropTable(
-                name: "InboxState");
+                name: "OutboxMessage",
+                schema: "orders");
 
             migrationBuilder.DropTable(
-                name: "OutboxState");
+                name: "Orders",
+                schema: "orders");
+
+            migrationBuilder.DropTable(
+                name: "InboxState",
+                schema: "orders");
+
+            migrationBuilder.DropTable(
+                name: "OutboxState",
+                schema: "orders");
         }
     }
 }

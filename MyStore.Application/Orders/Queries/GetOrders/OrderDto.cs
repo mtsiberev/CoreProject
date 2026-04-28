@@ -8,4 +8,4 @@ public record OrderDto(
     string Status,
     List<OrderItemDto> Items);
 
-public record OrderItemDto(string ProductName, decimal Price, int Quantity);
+public record OrderItemDto(Guid ProductId, decimal Price, int Quantity);
