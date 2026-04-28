@@ -1,7 +1,8 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
 
-namespace MyStore.Application.Common.Events;
+
+namespace MyStore.Contracts.Events;
 
 public class OrderCreatedConsumer(ILogger<OrderCreatedConsumer> logger) : IConsumer<OrderCreatedEvent>
 {

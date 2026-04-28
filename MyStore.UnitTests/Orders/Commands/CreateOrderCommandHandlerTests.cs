@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using MassTransit;
 using Microsoft.Extensions.Caching.Distributed;
-using MyStore.Application.Common.Events;
+using MyStore.Contracts.Events;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Application.Orders.Commands;
 using MyStore.Domain.Entities;

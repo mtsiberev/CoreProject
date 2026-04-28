@@ -9,7 +9,9 @@
   </Project>
   <Project Path="MyStore.Api/MyStore.Api.csproj" />
   <Project Path="MyStore.Application/MyStore.Application.csproj" Id="2e1dc693-6dd5-42b6-893f-118e76e1ca8e" />
+  <Project Path="MyStore.Contracts/MyStore.Contracts.csproj" Id="94cec510-1ccb-4cc0-8f01-006c01e6e14e" />
   <Project Path="MyStore.Domain/MyStore.Domain.csproj" Id="f42f08a9-7eeb-42cd-b24a-6a3d6e02a730" />
   <Project Path="MyStore.Infrastructure/MyStore.Infrastructure.csproj" Id="c19c471a-92fb-4931-affa-39bd8c0db179" />
   <Project Path="MyStore.UnitTests/MyStore.UnitTests.csproj" Id="6977d743-9738-4349-b880-00c9043977b0" />
+  <Project Path="MyStore.Warehouse/MyStore.Warehouse.csproj" Id="2807ae1a-7375-484e-8063-4daa3bb027fd" />
 </Solution>

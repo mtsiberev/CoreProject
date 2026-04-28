@@ -5,7 +5,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
-using MyStore.Application.Common.Events;
+using MyStore.Contracts.Events;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
 using MyStore.Infrastructure.Persistence.Repositories;
