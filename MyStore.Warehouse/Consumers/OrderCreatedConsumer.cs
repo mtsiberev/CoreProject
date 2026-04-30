@@ -10,8 +10,8 @@ public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedCon
 {
     public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync();
-
+        var ct = context.CancellationToken;
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
         try
         {
             var productId = context.Message.Items.FirstOrDefault()?.ProductId;
@@ -19,7 +19,7 @@ public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedCon
 
             var stock = await db.Stocks
                 .FromSqlRaw("SELECT * FROM warehouse.\"Stocks\" WHERE \"ProductId\" = {0} FOR UPDATE", productId)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(ct);
 
             if (stock == null || stock.Quantity <= 0)
             {
@@ -27,19 +27,18 @@ public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedCon
                 return;
             }
 
-            await Task.Delay(2000);
+            await Task.Delay(2000, ct);
 
             stock.Quantity -= 1;
 
-            await db.SaveChangesAsync();
-            await transaction.CommitAsync();
+            await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
 
             logger.LogInformation("Order {OrderId} processed. Stock: {Qty}",
                 context.Message.OrderId, stock.Quantity);
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
             logger.LogError(ex, "Order processing error");
             throw;
         }
