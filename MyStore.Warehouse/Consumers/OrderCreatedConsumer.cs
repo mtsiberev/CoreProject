@@ -10,30 +10,38 @@ public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedCon
 {
     public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
     {
-        var product = context.Message.Items.FirstOrDefault();
-        if (product == null)
+        await using var transaction = await db.Database.BeginTransactionAsync();
+
+        try
         {
-            logger.LogWarning("Товар не указан");
-            return;
+            var productId = context.Message.Items.FirstOrDefault()?.ProductId;
+            if (productId == null) return;
+
+            var stock = await db.Stocks
+                .FromSqlRaw("SELECT * FROM warehouse.\"Stocks\" WHERE \"ProductId\" = {0} FOR UPDATE", productId)
+                .FirstOrDefaultAsync();
+
+            if (stock == null || stock.Quantity <= 0)
+            {
+                logger.LogWarning("Product {Id} is not available", productId);
+                return;
+            }
+
+            await Task.Delay(2000);
+
+            stock.Quantity -= 1;
+
+            await db.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            logger.LogInformation("Order {OrderId} processed. Stock: {Qty}",
+                context.Message.OrderId, stock.Quantity);
         }
-        var productId = product.ProductId; 
-
-        var stock = await db.Stocks
-            .FirstOrDefaultAsync(x => x.ProductId == productId);
-
-        if (stock == null || stock.Quantity <= 0)
+        catch (Exception ex)
         {
-            logger.LogWarning("Товара {Id} нет в наличии", productId);
-            return;
+            await transaction.RollbackAsync();
+            logger.LogError(ex, "Order processing error");
+            throw;
         }
-
-        // make the bug
-        await Task.Delay(2000);
-
-        stock.Quantity -= 1;
-        await db.SaveChangesAsync();
-
-        logger.LogInformation("Заказ {OrderId} обработан. Остаток: {Qty}",
-            context.Message.OrderId, stock.Quantity);
     }
 }
