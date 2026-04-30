@@ -216,9 +216,21 @@ namespace MyStore.Warehouse.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Id = new Guid("1881ac71-f3f2-4ce5-b3fb-3f697a8773b3"),
                             ProductId = new Guid("7f39564c-8367-4a6a-81f1-80775a96860a"),
                             Quantity = 10
+                        },
+                        new
+                        {
+                            Id = new Guid("20a7bc51-2c67-4e70-a9e1-286285bf62b6"),
+                            ProductId = new Guid("f13ea1ad-1bd0-4e0f-8a76-11368fe7178d"),
+                            Quantity = 20
+                        },
+                        new
+                        {
+                            Id = new Guid("f20a12a9-bffd-4d87-8876-badfdca9a12a"),
+                            ProductId = new Guid("9e2ad445-3188-46e2-b2c4-a7d70c569017"),
+                            Quantity = 30
                         });
                 });
 

@@ -4,6 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace MyStore.Warehouse.Migrations
 {
     /// <inheritdoc />
@@ -120,7 +122,12 @@ namespace MyStore.Warehouse.Migrations
                 schema: "warehouse",
                 table: "Stocks",
                 columns: new[] { "Id", "ProductId", "Quantity" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new Guid("7f39564c-8367-4a6a-81f1-80775a96860a"), 10 });
+                values: new object[,]
+                {
+                    { new Guid("1881ac71-f3f2-4ce5-b3fb-3f697a8773b3"), new Guid("7f39564c-8367-4a6a-81f1-80775a96860a"), 10 },
+                    { new Guid("20a7bc51-2c67-4e70-a9e1-286285bf62b6"), new Guid("f13ea1ad-1bd0-4e0f-8a76-11368fe7178d"), 20 },
+                    { new Guid("f20a12a9-bffd-4d87-8876-badfdca9a12a"), new Guid("9e2ad445-3188-46e2-b2c4-a7d70c569017"), 30 }
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_InboxState_Delivered",
