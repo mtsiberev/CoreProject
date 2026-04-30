@@ -5,7 +5,6 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
-using MyStore.Contracts.Events;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
 using MyStore.Infrastructure.Persistence.Repositories;
@@ -54,8 +53,6 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
 
-    x.AddConsumer<OrderCreatedConsumer>();
-
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("rabbitmq", "/", h =>
@@ -63,6 +60,9 @@ builder.Services.AddMassTransit(x =>
             h.Username("guest");
             h.Password("guest");
         });
+
+        cfg.UseRawJsonSerializer();
+        //cfg.Message<OrderCreatedEvent>(m => m.SetEntityName("order-created-event"));
 
         cfg.ConfigureEndpoints(context);
     });

@@ -1,4 +1,4 @@
-﻿namespace MyStore.Application.Orders.Queries.GetOrders;
+﻿namespace MyStore.Contracts.Common;
 
 public record OrderDto(
     Guid Id,
@@ -8,4 +8,4 @@ public record OrderDto(
     string Status,
     List<OrderItemDto> Items);
 
-public record OrderItemDto(Guid ProductId, decimal Price, int Quantity);
+public record OrderItemDto(Guid ProductId, string ProductName, decimal Price, int Quantity);

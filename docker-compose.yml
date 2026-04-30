@@ -1,21 +1,20 @@
-version: '3.8'
-
 services:
   mystore.api:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_HTTP_PORTS=8080
-    ports:
-      - "5000:8080"   
-      - "5001:8081"   
     image: ${DOCKER_REGISTRY-}mystoreapi
     build:
       context: .
       dockerfile: MyStore.Api/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=my_app_db;Username=admin;Password=password123
+    ports:
+      - "5000:8080"
+      - "5001:8081"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
-  # База данных PostgreSQL
   db:
     image: postgres:latest
     container_name: my_postgres
@@ -26,17 +25,27 @@ services:
       POSTGRES_DB: my_app_db
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d my_app_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # Брокер сообщений RabbitMQ (с панелью управления)
   rabbitmq:
     image: rabbitmq:3-management
     container_name: my_rabbitmq
     restart: always
     ports:
-      - "5672:5672"   # Порт для кода
-      - "15672:15672" # Порт для браузера (логин/пасс: guest/guest)
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # Кэш Redis
   redis:
     image: redis:latest
     container_name: my_redis
@@ -44,13 +53,32 @@ services:
     ports:
       - "6379:6379"
 
-  # Логи
   seq:
     image: datalust/seq:latest
+    container_name: my_seq
     environment:
       - ACCEPT_EULA=Y
       - SEQ_FIRSTRUN_NOAUTHENTICATION=true
     ports:
-      - "8090:80"    # UI http://localhost:8090
-      - "5341:5341"  # Порт для приема логов
-  
+      - "8090:80"
+      - "5341:5341"
+    volumes:
+      - seq_data:/data
+
+  warehouse:
+    image: ${DOCKER_REGISTRY-}mystorewarehouse
+    build:
+      context: .
+      dockerfile: MyStore.Warehouse/Dockerfile
+    environment:
+      - ConnectionStrings__WarehouseDb=Host=db;Port=5432;Database=my_app_db;Username=admin;Password=password123
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  seq_data:

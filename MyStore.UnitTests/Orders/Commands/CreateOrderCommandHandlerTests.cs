@@ -2,6 +2,7 @@
 using MassTransit;
 using Microsoft.Extensions.Caching.Distributed;
 using MyStore.Contracts.Events;
+using MyStore.Contracts.Common;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Application.Orders.Commands;
 using MyStore.Domain.Entities;
@@ -25,7 +26,11 @@ public class CreateOrderCommandHandlerTests
     [Fact]
     public async Task Handle_Should_CreateOrder_And_PublishEvent()
     {
-        var command = new CreateOrderCommand("Ivan", "Laptop", 1500);
+        var items = new List<OrderItemDto>()
+        {
+            new OrderItemDto(new Guid(), "Laptop", 1, 1)
+        };
+        var command = new CreateOrderCommand("Ivan", items);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 

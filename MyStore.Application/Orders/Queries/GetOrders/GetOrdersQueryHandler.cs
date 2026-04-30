@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Application.Orders.Queries.GetOrders;
 using System.Text.Json;
+using MyStore.Contracts.Common;
 
 public class GetOrdersQueryHandler(IOrderRepository repository, IDistributedCache cache, ILogger<GetOrdersQueryHandler> logger)
     : IRequestHandler<GetOrdersQuery, List<OrderDto>>
