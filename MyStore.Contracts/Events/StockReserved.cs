@@ -2,10 +2,7 @@
 
 namespace MyStore.Contracts.Events;
 
-public record OrderCreatedEvent(
+public record StockReserved(
     Guid OrderId,
-    string CustomerName,
-    decimal TotalAmount,
     List<OrderItemDto> Items
 );
-

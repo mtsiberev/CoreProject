@@ -30,7 +30,7 @@ $jsonUser2 = '{
       "productId": "f13ea1ad-1bd0-4e0f-8a76-11368fe7178d",
       "productName": "Keyboard",
       "price": 20,
-      "quantity": 3
+      "quantity": 2
     },
 	{
       "productId": "9e2ad445-3188-46e2-b2c4-a7d70c569017",
@@ -65,9 +65,9 @@ Write-Host "Запуск нагрузки: 10 запросов на $url" -Foreg
     Write-Host "Заказ $_ отправлен"
 }
 
-1..10 | ForEach-Object {
-    Invoke-RestMethod -Method Post -Uri $url -ContentType "application/json" -Body $jsonUser3
-    Write-Host "Заказ $_ отправлен"
-}
+#1..10 | ForEach-Object {
+#    Invoke-RestMethod -Method Post -Uri $url -ContentType "application/json" -Body $jsonUser3
+#    Write-Host "Заказ $_ отправлен"
+#}
 
 Write-Host "Тест завершен. Проверь логи воркера и базу!" -ForegroundColor Green

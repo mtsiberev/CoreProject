@@ -6,14 +6,20 @@ using MyStore.Warehouse.Data;
 namespace MyStore.Warehouse.Consumers;
 
 public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedConsumer> logger)
-    : IConsumer<OrderCreatedEvent>
+    : IConsumer<OrderCreated>
 {
 
-    public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
+    public async Task Consume(ConsumeContext<OrderCreated> context)
     {
         var ct = context.CancellationToken;
+        var orderId = context.Message.OrderId;
 
-        var productIds = context.Message.Items.Select(i => i.ProductId).OrderBy(id => id).ToList();
+        var groupedItems = context.Message.Items
+            .GroupBy(i => i.ProductId)
+            .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) })
+            .ToList();
+
+        var productIds = groupedItems.Select(i => i.ProductId).OrderBy(id => id).ToList();
 
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         try
@@ -22,20 +28,30 @@ public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedCon
                 .FromSqlRaw("SELECT * FROM warehouse.\"Stocks\" WHERE \"ProductId\" = ANY({0}) FOR UPDATE", productIds)
                 .ToListAsync(ct);
 
-            foreach (var item in context.Message.Items)
+            foreach (var item in groupedItems)
             {
                 var stock = stocks.FirstOrDefault(s => s.ProductId == item.ProductId);
 
-                if (stock == null || stock.Quantity < item.Quantity)
+                if (stock == null || stock.Quantity < item.TotalQuantity)
                 {
-                    logger.LogWarning("Product {Id} is not available", item.ProductId);
-                    await transaction.RollbackAsync(ct);
+                    logger.LogWarning("Product {Id} is not available for Order {Id}", item.ProductId, orderId);
+
+                    await context.Publish(new StockReservationFailed(orderId, "Product is not available"), ct);
+
+                    await db.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+
                     return;
                 }
-
-                await Task.Delay(2000, ct);
-                stock.Quantity -= item.Quantity;
             }
+
+            foreach (var item in groupedItems)
+            {
+                var stock = stocks.First(s => s.ProductId == item.ProductId);
+                stock.Quantity -= item.TotalQuantity;
+            }
+
+            await context.Publish(new StockReserved(context.Message.OrderId, context.Message.Items), ct);
 
             await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);

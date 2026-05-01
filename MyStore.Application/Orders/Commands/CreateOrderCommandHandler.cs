@@ -40,7 +40,7 @@ public class CreateOrderCommandHandler(
             x.Price,
             x.Quantity)).ToList();
 
-        await publishEndpoint.Publish(new OrderCreatedEvent(
+        await publishEndpoint.Publish(new OrderCreated(
             order.Id,
             order.CustomerName,
             order.TotalAmount,

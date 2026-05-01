@@ -16,7 +16,8 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
 
-  x.AddConsumer<OrderCreatedConsumer>(); 
+    x.AddConsumer<OrderCreatedConsumer>();
+    x.AddConsumer<RobotLoaderConsumer>();
 
     x.UsingRabbitMq((context, cfg) =>
     {

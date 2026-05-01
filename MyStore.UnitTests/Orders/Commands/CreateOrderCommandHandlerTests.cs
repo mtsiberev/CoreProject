@@ -40,6 +40,6 @@ public class CreateOrderCommandHandlerTests
 
         await _context.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
 
-        await _publishEndpoint.Received(1).Publish(Arg.Any<OrderCreatedEvent>(), Arg.Any<CancellationToken>());
+        await _publishEndpoint.Received(1).Publish(Arg.Any<OrderCreated>(), Arg.Any<CancellationToken>());
     }
 }
