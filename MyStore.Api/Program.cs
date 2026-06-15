@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Mapster;
 using MapsterMapper;
 using MassTransit;
@@ -8,6 +8,9 @@ using MyStore.Application.Common.Behaviors;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Infrastructure.Persistence;
 using MyStore.Infrastructure.Persistence.Repositories;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -18,6 +21,16 @@ Log.Logger = new LoggerConfiguration()
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("MyStore.Api"))
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddSource("MassTransit")
+        .AddOtlpExporter())
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddOtlpExporter());
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
