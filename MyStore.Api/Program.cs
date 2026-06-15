@@ -61,9 +61,15 @@ builder.Services.AddMassTransit(x =>
             h.Password("guest");
         });
 
-        cfg.UseRawJsonSerializer();
-        //cfg.Message<OrderCreatedEvent>(m => m.SetEntityName("order-created-event"));
+        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(2)));
+        cfg.UseCircuitBreaker(cb =>
+        {
+            cb.TripThreshold = 15;
+            cb.ActiveThreshold = 10;
+            cb.ResetInterval = TimeSpan.FromMinutes(5);
+        });
 
+        cfg.UseRawJsonSerializer();
         cfg.ConfigureEndpoints(context);
     });
 });
