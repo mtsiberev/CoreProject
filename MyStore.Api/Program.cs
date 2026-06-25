@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
 using MyStore.Application.Common.Interfaces;
+using MyStore.Infrastructure.Clients;
 using MyStore.Infrastructure.Persistence;
 using MyStore.Infrastructure.Persistence.Repositories;
+using MyStore.Warehouse.Grpc;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -20,6 +22,9 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+
 builder.Host.UseSerilog();
 
 builder.Services.AddOpenTelemetry()
@@ -38,12 +43,24 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
+builder.Services.AddGrpcClient<WarehouseService.WarehouseServiceClient>(options =>
+{
+    options.Address = new Uri("http://warehouse:8080");
+})
+.ConfigureHttpClient(client =>
+{
+    client.DefaultRequestVersion = Version.Parse("2.0");
+    client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+});
+
+builder.Services.AddScoped<IWarehouseClient, WarehouseGrpcGateway>();
+
 builder.Services.AddScoped<IApplicationDbContext>(provider =>
     provider.GetRequiredService<ApplicationDbContext>());
 
 builder.Services.AddValidatorsFromAssembly(typeof(IApplicationDbContext).Assembly);
 
-builder.Services.AddMediatR(cfg => { 
+builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(IApplicationDbContext).Assembly);
     cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
     cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
@@ -103,9 +120,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
-
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope())

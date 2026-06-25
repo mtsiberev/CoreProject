@@ -2,20 +2,24 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Warehouse.Consumers;
 using MyStore.Warehouse.Data;
+using MyStore.Warehouse.Services;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("MyStore.Warehouse"))
     .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
         .AddSource("MassTransit")
         .AddOtlpExporter())
     .WithMetrics(metrics => metrics
-        .AddRuntimeInstrumentation()
+        .AddAspNetCoreInstrumentation()
         .AddOtlpExporter());
+
+builder.Services.AddGrpc();
 
 builder.Services.AddDbContext<WarehouseDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("WarehouseDb")));
@@ -43,6 +47,8 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
-var host = builder.Build();
+var app = builder.Build();
 
-host.Run();
+app.MapGrpcService<WarehouseGrpcService>();
+
+app.Run();

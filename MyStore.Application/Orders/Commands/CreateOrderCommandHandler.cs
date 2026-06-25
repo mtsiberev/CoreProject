@@ -2,25 +2,39 @@
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
 using MyStore.Application.Common.Interfaces;
-using MyStore.Application.Orders.Commands;
 using MyStore.Contracts.Common;
 using MyStore.Contracts.Events;
 using MyStore.Domain.Entities;
 using MyStore.Domain.Enums;
 
+namespace MyStore.Application.Orders.Commands;
 
 public class CreateOrderCommandHandler(
-    IOrderRepository repository, 
-    IApplicationDbContext context, 
+    IOrderRepository repository,
+    IApplicationDbContext context,
     IPublishEndpoint publishEndpoint,
-    IDistributedCache cache)
+    IDistributedCache cache,
+    IWarehouseClient warehouseClient)
     : IRequestHandler<CreateOrderCommand, Guid>
 {
-
     private const string CacheKey = "orders_list";
 
     public async Task<Guid> Handle(CreateOrderCommand request, CancellationToken ct)
     {
+        var productIds = request.Items.Select(x => x.ProductId);
+
+        var stockDict = await warehouseClient.GetProductStocksAsync(productIds, ct);
+
+        foreach (var item in request.Items)
+        {
+            var availableQuantity = stockDict.TryGetValue(item.ProductId, out var qty) ? qty : 0;
+            if (availableQuantity < item.Quantity)
+            {
+                throw new InvalidOperationException(
+                    $"Not enough '{item.ProductName}' on Warehouse. Available: {availableQuantity}, needed: {item.Quantity}.");
+            }
+        }
+
         var order = new Order
         {
             CustomerName = request.CustomerName,

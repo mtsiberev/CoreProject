@@ -1,10 +1,10 @@
 ﻿using FluentAssertions;
 using MassTransit;
 using Microsoft.Extensions.Caching.Distributed;
-using MyStore.Contracts.Events;
-using MyStore.Contracts.Common;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Application.Orders.Commands;
+using MyStore.Contracts.Common;
+using MyStore.Contracts.Events;
 using MyStore.Domain.Entities;
 using NSubstitute;
 
@@ -16,11 +16,13 @@ public class CreateOrderCommandHandlerTests
     private readonly IApplicationDbContext _context = Substitute.For<IApplicationDbContext>();
     private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
     private readonly IDistributedCache _cache = Substitute.For<IDistributedCache>();
-    private readonly CreateOrderCommandHandler _handler;
+    private readonly IWarehouseClient _warehouseClient = Substitute.For<IWarehouseClient>();
+
+    private readonly CreateOrderCommandHandler _handler;    
 
     public CreateOrderCommandHandlerTests()
     {
-        _handler = new CreateOrderCommandHandler(_repository, _context, _publishEndpoint, _cache);
+        _handler = new CreateOrderCommandHandler(_repository, _context, _publishEndpoint, _cache, _warehouseClient);
     }
 
     [Fact]

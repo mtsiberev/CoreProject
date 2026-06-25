@@ -1,0 +1,22 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "MyStore.Warehouse.Grpc";
+
+package warehouse;
+
+service WarehouseService {
+  rpc GetBatchStocksInfo (BatchStocksRequest) returns (BatchStocksResponse);
+}
+
+message BatchStocksRequest { 
+  repeated string product_ids = 1; 
+}
+
+message StockItemInfo { 
+  string product_id = 1; 
+  int32 quantity = 2; 
+}
+
+message BatchStocksResponse { 
+  repeated StockItemInfo stocks = 1; 
+}

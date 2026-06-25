@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.80.0" />
     <PackageReference Include="MassTransit.EntityFrameworkCore" Version="9.1.0" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="9.1.0" />
     <PackageReference Include="MediatR" Version="14.1.0" />

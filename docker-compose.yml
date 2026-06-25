@@ -11,10 +11,11 @@
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
     ports:
       - "5000:8080"
-      - "5001:8081"
     depends_on:
       db:
         condition: service_healthy
+      warehouse: 
+        condition: service_started
 
   db:
     image: postgres:latest
@@ -71,7 +72,12 @@
     build:
       context: .
       dockerfile: MyStore.Warehouse/Dockerfile
+    ports:
+      - "7001:8080"
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - KESTREL__ENDPOINTS__GRPC__URL=http://0.0.0.0:8080
+      - KESTREL__ENDPOINTS__GRPC__PROTOCOLS=Http2
       - ConnectionStrings__WarehouseDb=Host=db;Port=5432;Database=my_app_db;Username=admin;Password=password123
       - MessageBroker__Host=rabbitmq
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
@@ -80,7 +86,6 @@
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-
 
   jaeger:
     image: jaegertracing/all-in-one:latest
@@ -95,7 +100,7 @@
     container_name: my_grafana
     restart: always
     ports:
-      - "3000:3000"   # (admin/admin)
+      - "3000:3000" # (admin/admin)
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
 
