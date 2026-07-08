@@ -3,17 +3,29 @@ using Microsoft.EntityFrameworkCore;
 using MyStore.Warehouse.Consumers;
 using MyStore.Warehouse.Data;
 using MyStore.Warehouse.Services;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Seq("http://seq:5341")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("MyStore.Warehouse"))
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
         .AddSource("MassTransit")
+        .AddNpgsql()
         .AddOtlpExporter())
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
@@ -42,7 +54,6 @@ builder.Services.AddMassTransit(x =>
             h.Password("guest");
         });
 
-        cfg.UseRawJsonSerializer(isDefault: true);
         cfg.ConfigureEndpoints(context);
     });
 });

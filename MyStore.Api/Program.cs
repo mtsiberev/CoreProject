@@ -16,12 +16,14 @@ using OpenTelemetry.Trace;
 using Scalar.AspNetCore;
 using Serilog;
 
+var builder = WebApplication.CreateBuilder(args);
+
 Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
     .WriteTo.Console()
     .WriteTo.Seq("http://seq:5341")
     .CreateLogger();
-
-var builder = WebApplication.CreateBuilder(args);
 
 AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
@@ -31,6 +33,7 @@ builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("MyStore.Api"))
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
         .AddSource("MassTransit")
         .AddOtlpExporter())
     .WithMetrics(metrics => metrics
@@ -99,7 +102,6 @@ builder.Services.AddMassTransit(x =>
             cb.ResetInterval = TimeSpan.FromMinutes(5);
         });
 
-        cfg.UseRawJsonSerializer();
         cfg.ConfigureEndpoints(context);
     });
 });
