@@ -5,7 +5,9 @@ using MyStore.Warehouse.Data;
 
 namespace MyStore.Warehouse.Consumers;
 
-public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedConsumer> logger)
+public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedConsumer> logger,
+    ITopicProducer<string, StockReserved> kafkaProducer,
+    IConfiguration configuration)
     : IConsumer<OrderCreated>
 {
 
@@ -31,7 +33,6 @@ public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedCon
             foreach (var item in groupedItems)
             {
                 var stock = stocks.FirstOrDefault(s => s.ProductId == item.ProductId);
-
                 if (stock == null || stock.Quantity < item.TotalQuantity)
                 {
                     logger.LogWarning("Product {Id} is not available for Order {Id}", item.ProductId, orderId);
@@ -51,7 +52,17 @@ public class OrderCreatedConsumer(WarehouseDbContext db, ILogger<OrderCreatedCon
                 stock.Quantity -= item.TotalQuantity;
             }
 
-            await context.Publish(new StockReserved(context.Message.OrderId, context.Message.Items), ct);
+            if (configuration.IsKafka())
+            {
+                await kafkaProducer.Produce(
+                    context.Message.OrderId.ToString(),
+                    new StockReserved(context.Message.OrderId, context.Message.Items),
+                    ct);
+            }
+            else
+            {
+                await context.Publish(new StockReserved(context.Message.OrderId, context.Message.Items), ct);
+            }
 
             await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using MyStore.Api.Infrastructure;
 using MyStore.Application.Common.Behaviors;
 using MyStore.Application.Common.Interfaces;
+using MyStore.Contracts.Events;
 using MyStore.Infrastructure.Clients;
 using MyStore.Infrastructure.Persistence;
 using MyStore.Infrastructure.Persistence.Repositories;
@@ -86,24 +87,54 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
 
-    x.UsingRabbitMq((context, cfg) =>
+    var kafkaBootstrap = builder.Configuration["Kafka:BootstrapServers"] ?? "kafka:9092";
+
+    x.AddRider(rider =>
     {
-        cfg.Host("rabbitmq", "/", h =>
-        {
-            h.Username("guest");
-            h.Password("guest");
-        });
+        rider.AddProducer<string, OrderCreated>("order-created-topic");
+        rider.AddProducer<string, StockReserved>("stock-reserved-topic");
 
-        cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(2)));
-        cfg.UseCircuitBreaker(cb =>
+        rider.UsingKafka((context, k) =>
         {
-            cb.TripThreshold = 15;
-            cb.ActiveThreshold = 10;
-            cb.ResetInterval = TimeSpan.FromMinutes(5);
+            if (builder.Configuration.IsKafka())
+            {
+                k.Host(kafkaBootstrap);
+            }
+            else
+            {
+                k.Host("localhost:9092");
+            }
         });
-
-        cfg.ConfigureEndpoints(context);
     });
+
+    if (builder.Configuration.IsKafka())
+    {
+        x.UsingInMemory((context, cfg) =>
+        {
+            cfg.ConfigureEndpoints(context);
+        });
+    }
+    else
+    {
+        x.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host("rabbitmq", "/", h =>
+            {
+                h.Username("guest");
+                h.Password("guest");
+            });
+
+            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(2)));
+            cfg.UseCircuitBreaker(cb =>
+            {
+                cb.TripThreshold = 15;
+                cb.ActiveThreshold = 10;
+                cb.ResetInterval = TimeSpan.FromMinutes(5);
+            });
+
+            cfg.ConfigureEndpoints(context);
+        });
+    }
 });
 
 builder.Services.AddStackExchangeRedisCache(options =>

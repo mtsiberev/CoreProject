@@ -1,13 +1,13 @@
 ﻿using MassTransit;
 using MyStore.Contracts.Events;
 
-public class RobotLoaderConsumer : IConsumer<StockReserved>
+public class StockReservedConsumer : IConsumer<StockReserved>
 {
-    private readonly ILogger<RobotLoaderConsumer> _logger;
+    private readonly ILogger<StockReservedConsumer> _logger;
     private static readonly SemaphoreSlim _robotsPool = new SemaphoreSlim(3, 3);
     private static readonly AsyncLocal<DateTime> _jobStartTime = new AsyncLocal<DateTime>();
 
-    public RobotLoaderConsumer(ILogger<RobotLoaderConsumer> logger)
+    public StockReservedConsumer(ILogger<StockReservedConsumer> logger)
     {
         _logger = logger;
     }

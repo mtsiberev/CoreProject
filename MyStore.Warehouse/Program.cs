@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using MyStore.Contracts.Events;
 using MyStore.Warehouse.Consumers;
 using MyStore.Warehouse.Data;
 using MyStore.Warehouse.Services;
@@ -44,18 +45,69 @@ builder.Services.AddMassTransit(x =>
         o.UseBusOutbox();
     });
 
-    x.AddConsumer<OrderCreatedConsumer>();
-    x.AddConsumer<RobotLoaderConsumer>();
+    var kafkaBootstrap = builder.Configuration["Kafka:BootstrapServers"] ?? "kafka:9092";
 
-    x.UsingRabbitMq((context, cfg) =>
+    x.AddRider(rider =>
     {
-        cfg.Host(builder.Configuration["MessageBroker:Host"] ?? "localhost", "/", h => {
-            h.Username("guest");
-            h.Password("guest");
-        });
+        rider.AddConsumer<OrderCreatedConsumer>();
+        rider.AddConsumer<StockReservedConsumer>();
+        rider.AddProducer<string, StockReserved>("stock-reserved-topic");
 
-        cfg.ConfigureEndpoints(context);
+        rider.UsingKafka((context, k) =>
+        {
+            if(builder.Configuration.IsKafka())
+            {
+                k.Host(kafkaBootstrap);
+
+                k.TopicEndpoint<OrderCreated>("order-created-topic", "warehouse-order-group", e =>
+                {
+                    e.ConfigureConsumer<OrderCreatedConsumer>(context);
+                    e.CreateIfMissing(p =>
+                    {
+                        p.NumPartitions = 1;
+                        p.ReplicationFactor = 1;
+                    });
+                });
+
+                k.TopicEndpoint<StockReserved>("stock-reserved-topic", "warehouse-robot-group", e =>
+                {
+                    e.ConfigureConsumer<StockReservedConsumer>(context);
+                    e.CreateIfMissing(p =>
+                    {
+                        p.NumPartitions = 1;
+                        p.ReplicationFactor = 1;
+                    });
+                });
+            }
+            else
+            {
+                k.Host("localhost:9092");
+            }
+        });
     });
+
+    if (builder.Configuration.IsKafka())
+    {
+        x.UsingInMemory((context, cfg) =>
+        {
+            cfg.ConfigureEndpoints(context);
+        });
+    }
+    else
+    {
+        x.AddConsumer<OrderCreatedConsumer>();
+        x.AddConsumer<StockReservedConsumer>();
+
+        x.UsingRabbitMq((context, cfg) =>
+        {
+            cfg.Host(builder.Configuration["MessageBroker:Host"] ?? "localhost", "/", h => {
+                h.Username("guest");
+                h.Password("guest");
+            });
+
+            cfg.ConfigureEndpoints(context);
+        });
+    }
 });
 
 var app = builder.Build();

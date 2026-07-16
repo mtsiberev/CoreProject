@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using MassTransit;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Application.Orders.Commands;
 using MyStore.Contracts.Common;
@@ -17,12 +18,14 @@ public class CreateOrderCommandHandlerTests
     private readonly IPublishEndpoint _publishEndpoint = Substitute.For<IPublishEndpoint>();
     private readonly IDistributedCache _cache = Substitute.For<IDistributedCache>();
     private readonly IWarehouseClient _warehouseClient = Substitute.For<IWarehouseClient>();
+    private readonly ITopicProducer<string, OrderCreated> _kafkaProducer = Substitute.For<ITopicProducer<string, OrderCreated>>();
+    private readonly IConfiguration _configuration = Substitute.For<IConfiguration>();
 
     private readonly CreateOrderCommandHandler _handler;    
 
     public CreateOrderCommandHandlerTests()
     {
-        _handler = new CreateOrderCommandHandler(_repository, _context, _publishEndpoint, _cache, _warehouseClient);
+        _handler = new CreateOrderCommandHandler(_repository, _context, _publishEndpoint, _cache, _warehouseClient, _kafkaProducer, _configuration);
     }
 
     [Fact]

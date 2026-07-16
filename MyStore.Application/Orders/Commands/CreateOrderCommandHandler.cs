@@ -1,6 +1,7 @@
 ﻿using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Configuration;
 using MyStore.Application.Common.Interfaces;
 using MyStore.Contracts.Common;
 using MyStore.Contracts.Events;
@@ -14,7 +15,9 @@ public class CreateOrderCommandHandler(
     IApplicationDbContext context,
     IPublishEndpoint publishEndpoint,
     IDistributedCache cache,
-    IWarehouseClient warehouseClient)
+    IWarehouseClient warehouseClient,
+    ITopicProducer<string, OrderCreated> kafkaProducer,
+    IConfiguration configuration)
     : IRequestHandler<CreateOrderCommand, Guid>
 {
     private const string CacheKey = "orders_list";
@@ -54,11 +57,20 @@ public class CreateOrderCommandHandler(
             x.Price,
             x.Quantity)).ToList();
 
-        await publishEndpoint.Publish(new OrderCreated(
+        var orderCreatedEvent = new OrderCreated(
             order.Id,
             order.CustomerName,
             order.TotalAmount,
-            eventItems), ct);
+            eventItems);
+
+        if (configuration.IsKafka())
+        {
+            await kafkaProducer.Produce(order.Id.ToString(), orderCreatedEvent, ct);
+        }
+        else
+        {
+            await publishEndpoint.Publish(orderCreatedEvent, ct);
+        }
 
         await context.SaveChangesAsync(ct);
 
