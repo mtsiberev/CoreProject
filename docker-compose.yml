@@ -123,6 +123,8 @@ services:
       dockerfile: MyStore.Warehouse/Dockerfile
     ports:
       - "7001:8080"
+    volumes:
+      - ./data:/app/data
 
     environment:
       ASPNETCORE_ENVIRONMENT: Development

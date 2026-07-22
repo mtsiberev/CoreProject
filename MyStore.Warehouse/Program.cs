@@ -1,4 +1,4 @@
-using MassTransit;
+﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using MyStore.Contracts.Events;
 using MyStore.Warehouse.Consumers;
@@ -51,6 +51,8 @@ builder.Services.AddMassTransit(x =>
     {
         rider.AddConsumer<OrderCreatedConsumer>();
         rider.AddConsumer<StockReservedConsumer>();
+        rider.AddConsumer<StartCsvImportConsumer>();
+
         rider.AddProducer<string, StockReserved>("stock-reserved-topic");
 
         rider.UsingKafka((context, k) =>
@@ -72,6 +74,16 @@ builder.Services.AddMassTransit(x =>
                 k.TopicEndpoint<StockReserved>("stock-reserved-topic", "warehouse-robot-group", e =>
                 {
                     e.ConfigureConsumer<StockReservedConsumer>(context);
+                    e.CreateIfMissing(p =>
+                    {
+                        p.NumPartitions = 1;
+                        p.ReplicationFactor = 1;
+                    });
+                });
+
+                k.TopicEndpoint<StartCsvImport>("start-csv-import-topic", "warehouse-import-group", e =>
+                {
+                    e.ConfigureConsumer<StartCsvImportConsumer>(context);
                     e.CreateIfMissing(p =>
                     {
                         p.NumPartitions = 1;

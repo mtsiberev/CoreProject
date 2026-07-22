@@ -93,6 +93,7 @@ builder.Services.AddMassTransit(x =>
     {
         rider.AddProducer<string, OrderCreated>("order-created-topic");
         rider.AddProducer<string, StockReserved>("stock-reserved-topic");
+        rider.AddProducer<string, StartCsvImport>("start-csv-import-topic");
 
         rider.UsingKafka((context, k) =>
         {
