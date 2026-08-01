@@ -34,3 +34,11 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "MyStore.Api.dll"]
+
+
+# Kubernetes
+FROM base AS final-k8s
+WORKDIR /app
+
+COPY MyStore.Api/out .
+ENTRYPOINT ["dotnet", "MyStore.Api.dll"]

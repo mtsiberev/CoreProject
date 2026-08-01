@@ -1,5 +1,15 @@
 <Solution>
   <Folder Name="/Data/" />
+  <Folder Name="/deployments/" />
+  <Folder Name="/deployments/k8s/">
+    <File Path="deployments/k8s/api.yaml" />
+    <File Path="deployments/k8s/kafka.yaml" />
+    <File Path="deployments/k8s/postgres.yaml" />
+    <File Path="deployments/k8s/redis.yaml" />
+    <File Path="deployments/k8s/run-k8s.ps1" />
+    <File Path="deployments/k8s/stop-k8s.ps1" />
+    <File Path="deployments/k8s/warehouse.yaml" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
     <File Path="scripts/add-migration.ps1" />

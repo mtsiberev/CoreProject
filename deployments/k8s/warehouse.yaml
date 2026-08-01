@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: warehouse-service
+spec:
+  selector:
+    app: warehouse
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warehouse-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: warehouse
+  template:
+    metadata:
+      labels:
+        app: warehouse
+    spec:
+      containers:
+      - name: warehouse
+        image: mystorewarehouse:local
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: Development
+        - name: KESTREL__ENDPOINTS__GRPC__URL
+          value: http://0.0.0
+        - name: KESTREL__ENDPOINTS__GRPC__PROTOCOLS
+          value: Http2
+        - name: ConnectionStrings__WarehouseDb
+          value: Host=postgres-service;Database=my_app_db;Username=admin;Password=password123
+        - name: Kafka__BootstrapServers
+          value: kafka-service:9092
+        - name: MessageBroker__Provider
+          value: Kafka
